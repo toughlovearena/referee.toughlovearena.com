@@ -3,18 +3,17 @@ import { ClientMessage, ClientRegister, MessageType } from './apiTypes';
 import { RealClock } from './time';
 import { UserState } from './user';
 
-export class Socket {
-  readonly sid = `socket-${Socket.socketCount++}`;
+export class UserSocket {
   private user: UserState | undefined;
 
   readonly timeKeeper = RealClock;
   createdAt = this.timeKeeper.now();
   updatedAt = this.timeKeeper.now();
 
-  constructor(
+  private constructor(
+    readonly sid: string,
     readonly socket: WebSocket,
   ) {
-    Socket.cache.set(this.sid, this);
     socket.on('message', (msg: any) => this.receive(msg));
     socket.on('error', () => this.cleanup());
     socket.on('close', () => this.cleanup());
@@ -26,7 +25,7 @@ export class Socket {
     if (!match) {
       return this.socket.close(1007, 'registration failed');
     }
-    Socket.registered.set(user.aid, this);
+    UserSocket.registered.set(user.aid, this);
   }
 
   private receive(msg: string) {
@@ -43,14 +42,18 @@ export class Socket {
     }
   }
   private cleanup() {
-    Socket.cache.delete(this.sid);
+    UserSocket.cache.delete(this.sid);
     if (this.user) {
-      Socket.registered.delete(this.user.aid);
+      UserSocket.registered.delete(this.user.aid);
     }
     this.socket.terminate();
   }  
 
   private static socketCount = 0;
-  private static cache = new Map<string, Socket>();
-  private static registered = new Map<string, Socket>();
+  private static cache = new Map<string, UserSocket>();
+  private static registered = new Map<string, UserSocket>();
+  static register(ws: WebSocket) {
+    const instance = new UserSocket(`socket-${this.socketCount++}`, ws);
+    this.cache.set(instance.sid, instance);
+  }
 }

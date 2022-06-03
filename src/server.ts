@@ -2,6 +2,7 @@ import { Updater } from '@toughlovearena/updater';
 import cors from 'cors';
 import WebSocketExpress, { Router } from 'websocket-express';
 import { User } from './apiTypes';
+import { UserSocket } from './socket';
 import { UserState } from './user';
 
 export class Server {
@@ -31,18 +32,18 @@ export class Server {
       if (!(aid && jwt)) {
         return res.status(404);
       }
-      UserState.cache.set(aid, new UserState({ aid, jwt }));
+      UserState.register({ aid, jwt });
       return res.status(200);
     });
 
     // ws
     router.ws('/disconnect', async (req, res) => {
       const ws = await res.accept();
-      // todo track ws
+      UserSocket.register(ws);
     });
     router.ws('/finish', async (req, res) => {
       const ws = await res.accept();
-      // todo track ws
+      UserSocket.register(ws);
     });
 
     this.app.use(cors());

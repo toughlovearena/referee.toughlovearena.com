@@ -11,11 +11,12 @@ export class UserState {
   updatedAt = this.timeKeeper.now();
   status = UserStatus.Ready;
 
-  constructor(
+  private constructor(
     user: User,
   ) {
     this.aid = user.aid;
     this.jwt = user.jwt;
+    UserState.cache.set(this.aid, this);
   }
 
   isValid(data: ClientRegister) {
@@ -23,4 +24,8 @@ export class UserState {
   }
 
   static cache = new Map<string, UserState>();
+  static register(user: User) {
+    const instance = new UserState(user);
+    this.cache.set(instance.aid, instance);
+  }
 }
