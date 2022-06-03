@@ -47,7 +47,7 @@ export class UserSocket {
       UserSocket.registered.delete(this.user.aid);
     }
     this.socket.terminate();
-  }  
+  }
 
   private static socketCount = 0;
   private static cache = new Map<string, UserSocket>();
