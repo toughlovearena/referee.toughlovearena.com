@@ -1,6 +1,8 @@
 import { Updater } from '@toughlovearena/updater';
 import cors from 'cors';
 import WebSocketExpress, { Router } from 'websocket-express';
+import { User } from './apiTypes';
+import { UserState } from './user';
 
 export class Server {
   private readonly port = 2410;
@@ -22,12 +24,23 @@ export class Server {
       res.send(data);
     });
 
-    // ws
-    router.ws('/finish/:aid', async (req, res) => {
-      const { aid } = req.params;
-      if (!aid) {
-        return res.sendError(404);
+    // rest
+    router.post('/register', async (req, res) => {
+      const reqBody: User = req.body;
+      const { aid, jwt } = reqBody;
+      if (!(aid && jwt)) {
+        return res.status(404);
       }
+      UserState.cache.set(aid, new UserState({ aid, jwt }));
+      return res.status(200);
+    });
+
+    // ws
+    router.ws('/disconnect', async (req, res) => {
+      const ws = await res.accept();
+      // todo track ws
+    });
+    router.ws('/finish', async (req, res) => {
       const ws = await res.accept();
       // todo track ws
     });

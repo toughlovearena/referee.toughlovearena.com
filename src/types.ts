@@ -1,4 +1,5 @@
-export interface User {
-    jwt: string;
-    aid: string;
+export enum UserStatus {
+  Ready,
+  CheckingForDisconnect,
+  Finished,
 }
